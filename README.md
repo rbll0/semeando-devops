@@ -1,11 +1,14 @@
 # Projeto de Deploy com Docker e Azure - Semeando 🌱
 
-
-
+## 🎥 Link do Vídeo
+[Assista aqui](https://youtu.be/Zy_C5ZDuyLw)
 
 ## Descrição do Projeto
 
 O Semeando 🌱 é um aplicativo focado em educar adolescentes e jovens-adultos sobre sustentabilidade e energia renovável. Para o desenvolvimento, utilizamos o Docker para criar os contêineres necessários, garantindo que todos os serviços rodem de forma isolada e eficiente. O projeto inclui uma aplicação backend em Java, um serviço complementar em .NET e um banco de dados Oracle. Tudo foi orquestrado utilizando o Docker Compose, permitindo que os serviços funcionem juntos de maneira integrada e facilitando o deploy e o gerenciamento do ambiente.
+
+## 🌐 Desenho da Arquitetura do Projeto
+![Desenho da Arquitetura](./Captura%20de%20Tela%202024-11-22%20a%CC%80s%2018.24.18.png)
 
 ## Requisitos
 
