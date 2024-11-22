@@ -37,8 +37,8 @@ Para realizar o deploy dos contêineres:
 
 **Clone este repositório na VM (.NET):**
 
-    https://github.com/rbll0/semeando-spring.git
-    cd semando-spring(TROCAR PARA O CERTO)
+    https://github.com/rbll0/semeando-mvc.git
+    cd semeando-mvc
 
 
 Execute o Docker Compose para construir e iniciar os serviços:
@@ -61,52 +61,61 @@ Para testar a aplicação, use as portas definidas no docker-compose.yml:
 
 Dockerfile Java
 ```sh
-  # Etapa base: Ambiente de build
-  FROM maven:3.9.4-eclipse-temurin-17 AS base
-  
-  # Define o diretório de trabalho
-  WORKDIR /app
-  
-  # Copia o código-fonte para o container
-  COPY . .
-  
-  # Compila o projeto sem rodar os testes
-  RUN mvn clean install -DskipTests
-  
-  # Etapa final: Imagem otimizada com JRE
-  FROM eclipse-temurin:17-jre
-  
-  # Define o diretório de trabalho
-  WORKDIR /app
-  
-  # Expõe a porta 8080
-  EXPOSE 8080
-  
-  # Copia o arquivo JAR gerado na etapa anterior
-  COPY --from=base /app/target/spring-semeando-0.0.1-SNAPSHOT.jar app.jar
-  
-  # Define o comando de entrada para executar a aplicação
-  ENTRYPOINT ["java", "-jar", "app.jar"]
+# Etapa base: Ambiente de build
+FROM maven:3.9.4-eclipse-temurin-17 AS base
+
+# Define o diretório de trabalho
+WORKDIR /app
+
+# Copia o código-fonte para o container
+COPY . .
+
+# Compila o projeto sem rodar os testes
+RUN mvn clean install -DskipTests
+
+# Etapa final: Imagem otimizada com JRE
+FROM eclipse-temurin:17-jre
+
+# Define o diretório de trabalho
+WORKDIR /app
+
+# Expõe a porta 8080
+EXPOSE 8080
+
+# Copia o arquivo JAR gerado na etapa anterior
+COPY --from=base /app/target/spring-semeando-0.0.1-SNAPSHOT.jar app.jar
+
+# Define o comando de entrada para executar a aplicação
+ENTRYPOINT ["java", "-jar", "app.jar"]
+
 ```
 
 Dockerfile .NET
 
 ```sh
-    FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
-    WORKDIR /App
-    
-    # Copy everything
-    COPY . ./
-    # Restore as distinct layers
-    RUN dotnet restore
-    # Build and publish a release
-    RUN dotnet publish -c Release -o out
-    
-    # Build runtime image
-    FROM mcr.microsoft.com/dotnet/aspnet:8.0
-    WORKDIR /App
-    COPY --from=build-env /App/out .
-    ENTRYPOINT ["dotnet", "DotNet.Docker.dll"]
+# Etapa de Build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
+WORKDIR /App
+
+# Copiar arquivos do projeto
+COPY . ./
+# Restaurar dependências
+RUN dotnet restore
+# Publicar o aplicativo
+RUN dotnet publish -c Release -o out
+
+# Etapa de Runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+WORKDIR /App
+
+# Diretório para armazenar chaves de proteção de dados
+VOLUME /App/keys
+
+# Copiar artefatos publicados
+COPY --from=build-env /App/out .
+
+ENTRYPOINT ["dotnet", "semeando-mvc.dll"]
+
 ```
 
 Docker Compose (Java)
@@ -122,13 +131,22 @@ Docker Compose (Java)
 ```
 Docker Compose (.NET)
 ```sh
-    dotnet-service:
-        container_name: dotnet-service
-        build:
-          context: COLOCAR NOME DO PROJETO
-          dockerfile: Dockerfile
-        ports:
-          - "5000:80"
+    services:
+  semeando-mvc:
+    container_name: semeando-mvc-service
+    build:
+      context: ./semeando-mvc  
+      dockerfile: Dockerfile  
+    image: semeando-mvc-app:latest  
+    ports:
+      - "5000:5000"  
+    volumes:
+      - ./semeando-mvc/appsettings.json:/App/appsettings.json  
+      - ./keys:/App/keys  
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5000
+
 ```
 ## Documentação da API (Java)
 #### Usuário
@@ -166,8 +184,8 @@ Docker Compose (.NET)
 
 **Build das Imagens Docker:**
 
-    cd semeando-cs (COLOCAR O CAMINHO CERTO)
-    docker build -t (COLOCAR O NOME CERTO DO CONTAINER .NET) .
+    cd semeando-mvc/semeando-mvc
+    docker build -t  semeando-mvc-service.
     cd semeando-spring
     docker build -t semeando-backend .
 
